@@ -1,0 +1,560 @@
+# .goreleaser.yaml
+version: 2
+before:
+  hooks:
+    - make man
+    - make readme
+    - make rsrc
+
+builds:
+  - id: unpoller
+    env:
+      - CGO_ENABLED=0
+    binary: unpoller
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - "386"
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser -X "golift.io/version.Version={{.Version}}" -X "golift.io/version.Branch={{.Branch}} ({{.Commit}})" -X "golift.io/version.BuildDate={{.Date}}" -X "golift.io/version.BuildUser=goreleaser" -X "golift.io/version.Revision=1"
+    ignore:
+      - goamd64: v4
+  - id: unpoller-freebsd
+    env:
+      - CGO_ENABLED=0
+    binary: /usr/local/bin/unpoller
+    goos:
+      - freebsd
+    goarch:
+      - amd64
+      - arm64
+      - arm
+    goarm:
+      - "7"
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser -X "golift.io/version.Version={{.Version}}" -X "golift.io/version.Branch={{.Branch}} ({{.Commit}})" -X "golift.io/version.BuildDate={{.Date}}" -X "golift.io/version.BuildUser=goreleaser" -X "golift.io/version.Revision=1"
+    ignore:
+      - goamd64: v4
+  - id: unpoller-mac
+    env:
+      - CGO_ENABLED=0
+    binary: unpoller
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser -X "golift.io/version.Version={{.Version}}" -X "golift.io/version.Branch={{.Branch}} ({{.Commit}})" -X "golift.io/version.BuildDate={{.Date}}" -X "golift.io/version.BuildUser=goreleaser" -X "golift.io/version.Revision=1"
+    ignore:
+      - goos: darwin
+        goarch: "386"
+  - id: unpoller-linux-arm
+    env:
+      - CGO_ENABLED=0
+    binary: unpoller
+    goarm:
+      - "6"
+      - "7"
+    goos:
+      - linux
+    goarch:
+      - arm64
+      - arm
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser -X "golift.io/version.Version={{.Version}}" -X "golift.io/version.Branch={{.Branch}} ({{.Commit}})" -X "golift.io/version.BuildDate={{.Date}}" -X "golift.io/version.BuildUser=goreleaser" -X "golift.io/version.Revision=1"
+  - id: unpoller-windows
+    env:
+      - CGO_ENABLED=0
+    binary: unpoller
+    goos:
+      - windows
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser -X "golift.io/version.Version={{.Version}}" -X "golift.io/version.Branch={{.Branch}} ({{.Commit}})" -X "golift.io/version.BuildDate={{.Date}}" -X "golift.io/version.BuildUser=goreleaser" -X "golift.io/version.Revision=1"
+
+archives:
+  - id: unpoller
+    builds:
+      - unpoller
+    files:
+      - LICENSE
+      - README.md
+      - examples/up.*.example
+  - id: unpoller-linux-arm
+    builds:
+      - unpoller-linux-arm
+    files:
+      - LICENSE
+      - README.html
+      - unpoller_manual.html
+      - examples/up.*.example
+  - id: unpoller-mac
+    builds:
+      - unpoller-mac
+    files:
+      - LICENSE
+      - README.html
+      - unpoller_manual.html
+      - examples/up.*.example
+  - id: unpoller-windows
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds:
+      - unpoller-windows
+    files:
+      - LICENSE
+      - README.html
+      - unpoller_manual.html
+      - rsrc_windows_*.syso
+      - examples/up.*.example
+      - init/windows/application.ico
+  - id: unpoller-freebsd-pkg
+    builds:
+      - unpoller-freebsd
+    format: tar.xz
+    wrap_in_directory: false
+    files:
+      # config files
+      - src: "examples/up.conf.example"
+        dst: "/usr/local/etc/unpoller"
+        strip_parent: true
+      - src: "examples/up.json.example"
+        dst: "/usr/local/etc/unpoller"
+        strip_parent: true
+      - src: "examples/up.yaml.example"
+        dst: "/usr/local/etc/unpoller"
+        strip_parent: true
+      # docs
+      - src: "README.html"
+        dst: "/usr/local/share/doc/unpoller/"
+        strip_parent: true
+      - src: "unpoller_manual.html"
+        dst: "/usr/local/share/doc/unpoller/"
+        strip_parent: true
+      - src: LICENSE
+        dst: "/usr/local/share/doc/unpoller/"
+        strip_parent: true
+      - src: "unpoller.1.gz"
+        dst: /usr/local/share/man/man1
+        strip_parent: true
+      - src: "init/bsd/unpoller"
+        dst: /usr/local/etc/rc.d
+        strip_parent: true
+        info:
+          mode: 0755
+    
+
+dockers:
+  - id: docker-linux-amd64
+    ids:
+      - unpoller
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "ghcr.io/unpoller/unpoller:latest-amd64"
+      - "ghcr.io/unpoller/unpoller:{{ .Tag }}-amd64"
+      - "ghcr.io/unpoller/unpoller:v{{ .Major }}-amd64"
+      - "golift/unifi-poller:latest-amd64"
+      - "golift/unifi-poller:{{ .Tag }}-amd64"
+      - "golift/unifi-poller:v{{ .Major }}-amd64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.documentation='https://unpoller.com/docs/install/docker'"
+      - "--label=org.opencontainers.image.description='Telemetry and Observability for your UniFi Network'"
+      - "--label=org.opencontainers.image.url='https://unpoller.com'"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--label=org.opencontainers.image.vendor=unpoller"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/amd64"
+    push_flags:
+      - --tls-verify=false
+    extra_files:
+      - "examples/up.conf.example"
+      - "examples/up.json.example"
+      - "examples/up.yaml.example"
+      - "README.html"
+      - "unpoller_manual.html"
+  - id: docker-linux-arm64
+    ids:
+      - unpoller-linux-arm
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/unpoller/unpoller:latest-arm64v8"
+      - "ghcr.io/unpoller/unpoller:{{ .Tag }}-arm64v8"
+      - "ghcr.io/unpoller/unpoller:v{{ .Major }}-arm64v8"
+      - "golift/unifi-poller:latest-arm64v8"
+      - "golift/unifi-poller:{{ .Tag }}-arm64v8"
+      - "golift/unifi-poller:v{{ .Major }}-arm64v8"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.documentation='https://unpoller.com/docs/install/docker'"
+      - "--label=org.opencontainers.image.description='Telemetry and Observability for your UniFi Network'"
+      - "--label=org.opencontainers.image.url='https://unpoller.com'"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--label=org.opencontainers.image.vendor=unpoller"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/arm64"
+    push_flags:
+      - --tls-verify=false
+    extra_files:
+      - "examples/up.conf.example"
+      - "examples/up.json.example"
+      - "examples/up.yaml.example"
+      - "README.html"
+      - "unpoller_manual.html"
+  - id: docker-linux-armv7
+    ids:
+      - unpoller-linux-arm
+    goos: linux
+    goarch: arm
+    goarm: "7"
+    image_templates:
+      - "ghcr.io/unpoller/unpoller:latest-armv7"
+      - "ghcr.io/unpoller/unpoller:{{ .Tag }}-armv7"
+      - "ghcr.io/unpoller/unpoller:v{{ .Major }}-armv7"
+      - "golift/unifi-poller:latest-armv7"
+      - "golift/unifi-poller:{{ .Tag }}-armv7"
+      - "golift/unifi-poller:v{{ .Major }}-armv7"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.documentation='https://unpoller.com/docs/install/docker'"
+      - "--label=org.opencontainers.image.description='Telemetry and Observability for your UniFi Network'"
+      - "--label=org.opencontainers.image.url='https://unpoller.com'"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--label=org.opencontainers.image.vendor=unpoller"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--platform=linux/arm/v7"
+    push_flags:
+      - --tls-verify=false
+    extra_files:
+      - "examples/up.conf.example"
+      - "examples/up.json.example"
+      - "examples/up.yaml.example"
+      - "README.html"
+      - "unpoller_manual.html"
+
+docker_manifests:
+  - name_template: 'ghcr.io/unpoller/unpoller:latest'
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+    image_templates:
+      - "ghcr.io/unpoller/unpoller:latest-amd64"
+      - "ghcr.io/unpoller/unpoller:latest-arm64v8"
+      - "ghcr.io/unpoller/unpoller:latest-armv7"
+  - name_template: 'ghcr.io/unpoller/unpoller:{{ .Tag }}'
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+    image_templates:
+      - "ghcr.io/unpoller/unpoller:{{ .Tag }}-amd64"
+      - "ghcr.io/unpoller/unpoller:{{ .Tag }}-arm64v8"
+      - "ghcr.io/unpoller/unpoller:{{ .Tag }}-armv7"
+  - name_template: 'ghcr.io/unpoller/unpoller:v{{ .Major }}'
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+    image_templates:
+      - "ghcr.io/unpoller/unpoller:v{{ .Major }}-amd64"
+      - "ghcr.io/unpoller/unpoller:v{{ .Major }}-arm64v8"
+      - "ghcr.io/unpoller/unpoller:v{{ .Major }}-armv7"
+  - name_template: 'golift/unifi-poller:latest'
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+    image_templates:
+      - "golift/unifi-poller:latest-amd64"
+      - "golift/unifi-poller:latest-arm64v8"
+      - "golift/unifi-poller:latest-armv7"
+  - name_template: 'golift/unifi-poller:{{ .Tag }}'
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+    image_templates:
+      - "golift/unifi-poller:{{ .Tag }}-amd64"
+      - "golift/unifi-poller:{{ .Tag }}-arm64v8"
+      - "golift/unifi-poller:{{ .Tag }}-armv7"
+  - name_template: 'golift/unifi-poller:v{{ .Major }}'
+    create_flags:
+      - --insecure
+    push_flags:
+      - --insecure
+    image_templates:
+      - "golift/unifi-poller:v{{ .Major }}-amd64"
+      - "golift/unifi-poller:v{{ .Major }}-arm64v8"
+      - "golift/unifi-poller:v{{ .Major }}-armv7"
+
+nfpms:
+  - id: unpoller-packages
+    builds:
+      - unpoller
+      - unpoller-linux-arm
+    file_name_template: '{{ .ProjectName }}_{{ if eq .Os "darwin" }}macOS{{ else if eq .Os "linux" }}Tux{{ else }}{{ .Os }}{{ end }}_{{ if eq .Arch "386" }}32-bit{{ else if eq .Arch "amd64" }}64-bit{{ else }}{{ .Arch }}{{ end }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+
+    vendor: unpoller
+    homepage: https://unpoller.com/
+    maintainer: unpoller.com
+    description: Telemetry and Observability for your UniFi Network
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    version_metadata: git
+    section: default
+    priority: extra
+    # provides defines the packages. The first one defines the package name.
+    provides:
+      - unpoller
+      - unifi-poller
+
+    # Contents to add to the package.
+    # GoReleaser will automatically add the binaries.
+    contents:
+      - dst: /etc/unpoller
+        type: dir
+        file_info:
+          mode: 0755
+      - dst: /usr/share/doc/unpoller
+        type: dir
+        file_info:
+          mode: 0755
+
+      # Example config files
+      - src: examples/up.conf.example
+        dst: /etc/unpoller/up.conf.example
+        type: config
+        file_info:
+          mode: 0640
+          owner: unpoller
+          group: unpoller
+      - src: examples/up.json.example
+        dst: /etc/unpoller/up.json.example
+        type: config
+        file_info:
+          mode: 0640
+          owner: unpoller
+          group: unpoller
+      - src: examples/up.yaml.example
+        dst: /etc/unpoller/up.yaml.example
+        type: config
+        file_info:
+          mode: 0640
+          owner: unpoller
+          group: unpoller
+      # copy example by default to real locations, people can override, cnfg uses this.
+      - src: examples/up.conf.example
+        dst: /etc/unpoller/up.conf
+        type: config|noreplace
+        file_info:
+          mode: 0640
+          owner: unpoller
+          group: unpoller
+      
+      # common useful info
+      - src: "README.html"
+        dst: /etc/unpoller/readme.html
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      - src: "unpoller_manual.html"
+        dst: /etc/unpoller/manual.html
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      
+      # man pages
+      - src: unpoller.1.gz
+        dst: /usr/share/man/man1/unpoller.1.gz
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      - src: LICENSE
+        dst: /usr/share/doc/unpoller/LICENSE
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      - src: unpoller_manual.html
+        dst: /usr/share/doc/unpoller/unpoller_manual.html
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      
+      # systemd service
+      - src: init/systemd/unpoller.service
+        dst: /etc/systemd/system/unpoller.service
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      
+      # freebsd rc service
+      - src: init/bsd/unpoller
+        dst: /usr/local/etc/rc.d/unpoller
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      
+      # web server statics
+      - dst: /usr/local/lib/unpoller/web/static/
+        type: dir
+        file_info:
+          mode: 0755
+          owner: unpoller
+          group: unpoller
+      - dst: /usr/local/lib/unpoller/web/static/css
+        type: dir
+        file_info:
+          mode: 0755
+          owner: unpoller
+          group: unpoller
+      - dst: /usr/local/lib/unpoller/web/static/images
+        type: dir
+        file_info:
+          mode: 0755
+          owner: unpoller
+          group: unpoller
+      - dst: /usr/local/lib/unpoller/web/static/js
+        type: dir
+        file_info:
+          mode: 0755
+          owner: unpoller
+          group: unpoller
+      - src: init/webserver/index.html
+        dst: /usr/local/lib/unpoller/web/static/index.html
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      - src: init/webserver/static/css/*
+        dst: /usr/local/lib/unpoller/web/static/css
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      - src: init/webserver/static/images/*
+        dst: /usr/local/lib/unpoller/web/static/images
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+      - src: init/webserver/static/js/*
+        dst: /usr/local/lib/unpoller/web/static/js
+        type: config
+        file_info:
+          mode: 0644
+          owner: unpoller
+          group: unpoller
+
+    # signing
+    rpm:
+      signature:
+        key_file: "{{ .Env.GPG_SIGNING_KEY }}"
+    deb:
+      signature:
+        key_file: "{{ .Env.GPG_SIGNING_KEY }}"
+        type: origin
+
+    scripts:
+      preinstall: "scripts/pre-install.sh"
+      postinstall: "scripts/post-install.sh"
+      preremove: "scripts/pre-remove.sh"
+      postremove: "scripts/post-remove.sh"
+
+signs:
+  - id: default
+    artifacts: all
+    ids:
+      - unpoller
+      - unpoller-linux-arm
+      - unpoller-windows
+      - unpoller-mac
+
+universal_binaries:
+  - replace: true
+    ids:
+      - unpoller-mac
+
+brews:
+  - name: unpoller
+    ids:
+      - unpoller
+      - unpoller-linux-arm
+      - unpoller-mac
+    repository:
+      owner: golift
+      name: homebrew-mugs
+      branch: master
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    directory: Formula
+    # enable the line below only for testing locally
+    # skip_upload: true
+    homepage: https://unpoller.com/
+    description: "Polls a UniFi controller, exports metrics to InfluxDB, Prometheus and Datadog"
+    caveats: "Edit the config file at #{etc}/unpoller/up.conf then start unpoller with brew services start unpoller ~ log file: #{var}/log/unpoller.log The manual explains the config file options: man unpoller"
+    conflicts:
+      - unifi-poller
+    license: MIT
+    service: |
+      run [opt_bin/"unpoller", "--config", etc/"unpoller/up.conf"]
+      keep_alive true
+      log_path var/"log/unpoller.log"
+      error_log_path var/"log/unpoller.log"
+    url_template: "https://github.com/unpoller/unpoller/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    test: |
+      assert_match "unpoller v#{version}", shell_output("#{bin}/unpoller -v 2>&1", 2)
+    install: |
+      bin.install "unpoller"
+      etc.mkdir "unpoller"
+      etc.install "examples/up.conf" => "unpoller/up.conf.example"
+    post_install: |
+      etc.install "examples/up.conf" => "unpoller/up.conf"
+
+publishers:
+  - name: "packagecloud-publisher"
+    ids:
+      - unpoller-packages
+    cmd: "scripts/packagecloud_push.sh '{{ .Tag }}' '{{ .Env.PACKAGECLOUD_TOKEN }}' 'unpoller' '{{ .ArtifactPath }}' '{{ .Os }}'"
+

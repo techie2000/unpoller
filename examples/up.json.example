@@ -26,7 +26,7 @@
   "webserver": {
      "enable":        false,
      "port":          37288,
-     "html_path":     "/usr/lib/unifi-poller/web",
+     "html_path":     "/usr/local/lib/unpoller/web",
      "ssl_cert_path": "",
      "ssl_key_path":  "",
      "max_events":    200,
@@ -35,6 +35,15 @@
      }
   },
 
+  "datadog": {
+    "enable": false,
+    "address": "localhost:8125",
+    "namespace": "",
+    "tags": [
+      "customer:abcde"
+    ]
+  }
+
   "unifi": {
     "dynamic": false,
     "defaults": {
@@ -42,6 +51,7 @@
       "pass":   "unifipoller",
       "url":    "https://127.0.0.1:8443",
       "sites": ["all"],
+      "timeout": "60s",
       "save_ids":    false,
       "save_events": false,
       "save_alarms": false,

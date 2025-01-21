@@ -56,6 +56,7 @@
 # Pick which logs you want per-controller in the [unifi.controller] section.
 # This is a new feature. Feedback welcome!
 [loki]
+  disable = true
   url = ""
   # The rest of this is advanced & optional. See wiki.
   user       = ""
@@ -69,8 +70,8 @@
   # How often to poll UniFi and report to Datadog.
   interval = "2m"
 
-  # To disable this output plugin
-  disable = true
+  # To enable this output plugin
+  enable = false
 
   # Datadog Custom Options
 
@@ -84,7 +85,7 @@
   # tags = [ "customer:abc_corp" ]
 
   # For more advanced options for very large amount of data collected see the upstream
-  # github.com/unpoller/datadogunifi repository README.
+  # github.com/unpoller/unpoller/pkg/datadogunifi repository README.
 
 
 # Unpoller has an optional web server. To turn it on, set enable to true. If you
@@ -96,7 +97,7 @@
   enable = false
   port   = 37288
   # The HTML path is different on Windows and BSD/macOS.
-  html_path     = "/usr/lib/unifi-poller/web"
+  html_path     = "/usr/local/lib/unpoller/web"
   ssl_cert_path = ""
   ssl_key_path  = ""
   # How many events per event group to hold. 200-2000. Use fewer with many sites.
@@ -142,10 +143,18 @@
   # ex: file:///etc/unifi/passwd.file, windows: file://C:\\UserData\\Unifi\\Passwd.txt
   pass = "unifipoller"
 
+  # API Key
+  # Unifi now supports API Key authentication. This is exclusive of user/pass auth.
+  # api_key = "unifiapikey"
+
   # If the controller has more than one site, specify which sites to poll here.
   # Set this to ["default"] to poll only the first site on the controller.
   # A setting of ["all"] will poll all sites; this works if you only have 1 site too.
   sites = ["all"]
+
+  # Specify a timeout, leave missing to declare infinite wait. This determines the maximum
+  # time to wait for a response from the unifi controller on any API request.
+  # timeout = 60s
 
   # Enable collection of site data. This data powers the Network Sites dashboard.
   # It's not valuable to everyone and setting this to false will save resources.

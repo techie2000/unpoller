@@ -29,12 +29,19 @@ influxdb:
 webserver:
   enable:        false
   port:          37288
-  html_path:     "/usr/lib/unifi-poller/web"
+  html_path:     "/usr/local/lib/unpoller/web"
   ssl_cert_path: ""
   ssl_key_path:  ""
   max_events:    200
   accounts:
     captain: "$2a$04$mxw6i0LKH6u46oaLK2cq5eCTAAFkfNiRpzNbz.EyvJZZWNa2FzIlS"
+
+datadog:
+  enable: false
+  address: localhost:8125
+  namespace: ""
+  tags:
+  - customer:abcdef
 
 unifi:
   dynamic: false
@@ -44,6 +51,7 @@ unifi:
     pass: "unifipoller"
     sites:
       - all
+    timeout: 60s
     save_ids:    false
     save_events: false
     save_alarms: false
